@@ -33,20 +33,23 @@ router.get("/:id", async (req, res) => {
 });
 
 // POST - Crear un nuevo proyecto (solo admin)
-router.post("/", isAuthenticated, isAdmin, async (req, res) => {
-  try {
-    const newProject = new Project(req.body);
-    const savedProject = await newProject.save();
-    res.status(201).json(savedProject);
-  } catch (error) {
-    res
-      .status(400)
-      .json({ message: "Error al crear el proyecto", error: error.message });
+router.post(
+  "/",
+  /* isAuthenticated, isAdmin */ async (req, res) => {
+    try {
+      const newProject = new Project(req.body);
+      const savedProject = await newProject.save();
+      res.status(201).json(savedProject);
+    } catch (error) {
+      res
+        .status(400)
+        .json({ message: "Error al crear el proyecto", error: error.message });
+    }
   }
-});
+);
 
 // PUT - Actualizar un proyecto (solo admin)
-router.put("/:id", isAuthenticated, isAdmin, async (req, res) => {
+router.put("/:id", isAuthenticated, async (req, res) => {
   try {
     const updatedProject = await Project.findByIdAndUpdate(
       req.params.id,
@@ -66,7 +69,7 @@ router.put("/:id", isAuthenticated, isAdmin, async (req, res) => {
 });
 
 // DELETE - Eliminar un proyecto (solo admin)
-router.delete("/:id", isAuthenticated, isAdmin, async (req, res) => {
+router.delete("/:id", isAuthenticated, async (req, res) => {
   try {
     const projectId = req.params.id;
 

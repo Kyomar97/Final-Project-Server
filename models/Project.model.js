@@ -2,7 +2,7 @@ const { Schema, model } = require("mongoose");
 
 const projectSchema = new Schema(
   {
-    nombre: {
+    name: {
       type: String,
       required: [true, "El nombre del programa es obligatorio."],
       trim: true,

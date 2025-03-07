@@ -1,4 +1,5 @@
 const { expressjwt: jwt } = require("express-jwt");
+const { TokenExpiredError } = require("jsonwebtoken");
 
 // Instantiate the JWT token validation middleware
 const isAuthenticated = jwt({
@@ -17,6 +18,7 @@ function getTokenFromHeaders(req) {
   ) {
     // Get the encoded token string and return it
     const token = req.headers.authorization.split(" ")[1];
+    console.log(token);
     return token;
   }
 
