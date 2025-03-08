@@ -6,33 +6,38 @@ const { isAuthenticated } = require("../middleware/jwt.middleware.js");
 const isAdmin = require("../middleware/isAdmin.middleware.js");
 const ActividadVoluntario = require("../models/Actividades.model.js");
 
-// Crear una nueva actividad dentro de un proyecto
-router.post("/:projectId/actividades", isAuthenticated, async (req, res) => {
-  try {
-    const { projectId } = req.params;
-    const actividadData = req.body;
+// Crear una nueva actividad (admin)
+router.post(
+  "/:projectId/actividades",
+  isAuthenticated,
+  isAdmin,
+  async (req, res) => {
+    try {
+      const { projectId } = req.params;
+      const actividadData = req.body;
 
-    // Verificar que el proyecto exista
-    const project = await Project.findById(projectId);
-    if (!project) {
-      return res.status(404).json({ message: "Proyecto no encontrado" });
+      // Verificar que el proyecto exista
+      const project = await Project.findById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Proyecto no encontrado" });
+      }
+
+      // Crear la actividad y vincularla al proyecto
+      const nuevaActividad = await ActividadVoluntario.create({
+        ...actividadData,
+        proyecto: projectId,
+      });
+
+      res.status(201).json(nuevaActividad);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: "Error creando la actividad", error });
     }
-
-    // Crear la actividad y vincularla al proyecto
-    const nuevaActividad = await ActividadVoluntario.create({
-      ...actividadData,
-      proyecto: projectId,
-    });
-
-    res.status(201).json(nuevaActividad);
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Error creando la actividad", error });
   }
-});
+);
 
 // Obtener todas las actividades de un proyecto
-router.get("/:projectId/actividades", async (req, res) => {
+router.get("/:projectId/actividades", isAuthenticated, async (req, res) => {
   try {
     const { projectId } = req.params;
     const actividades = await ActividadVoluntario.find({ proyecto: projectId });
@@ -42,7 +47,7 @@ router.get("/:projectId/actividades", async (req, res) => {
   }
 });
 
-// Inscribirse en una actividad
+// Inscribirse en una actividad (usuario)
 router.post("/:actividadId/inscribirse", isAuthenticated, async (req, res) => {
   try {
     const { actividadId } = req.params;
@@ -74,7 +79,7 @@ router.post("/:actividadId/inscribirse", isAuthenticated, async (req, res) => {
   }
 });
 
-// Desapuntarse de una actividad
+// Desapuntarse de una actividad (usuario)
 router.post(
   "/:actividadId/desinscribirse",
   isAuthenticated,
@@ -121,8 +126,8 @@ router.get("/mis-actividades", isAuthenticated, async (req, res) => {
   }
 });
 
-// Eliminar una actividad de un proyecto
-router.delete("/:actividadId", isAuthenticated, async (req, res) => {
+// Eliminar una actividad de un proyecto (admin)
+router.delete("/:actividadId", isAuthenticated, isAdmin, async (req, res) => {
   try {
     const { actividadId } = req.params;
     const actividad = await ActividadVoluntario.findById(actividadId);
@@ -137,8 +142,8 @@ router.delete("/:actividadId", isAuthenticated, async (req, res) => {
   }
 });
 
-// Modificar información de una actividad
-router.put("/:actividadId", isAuthenticated, async (req, res) => {
+// Modificar información de una actividad (admin)
+router.put("/:actividadId", isAuthenticated, isAdmin, async (req, res) => {
   try {
     const { actividadId } = req.params;
     const updateData = req.body;
