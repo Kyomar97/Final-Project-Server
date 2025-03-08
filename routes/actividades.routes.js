@@ -35,56 +35,48 @@ router.post("/:projectId/actividades", isAuthenticated, async (req, res) => {
 router.get("/:projectId/actividades", async (req, res) => {
   try {
     const { projectId } = req.params;
-
     const actividades = await ActividadVoluntario.find({ proyecto: projectId });
-
     res.status(200).json(actividades);
   } catch (error) {
     res.status(500).json({ message: "Error obteniendo actividades", error });
   }
 });
 
-// Apuntarse a una actividad (usuario autenticado)
-router.post(
-  "/actividades/:actividadId/inscribirse",
-  isAuthenticated,
-  async (req, res) => {
-    try {
-      const { actividadId } = req.params;
-      const userId = req.payload._id; // Obtenemos el ID del usuario autenticado
+// Inscribirse en una actividad
+router.post("/:actividadId/inscribirse", isAuthenticated, async (req, res) => {
+  try {
+    const { actividadId } = req.params;
+    const userId = req.payload._id;
 
-      // Verificar que la actividad existe
-      const actividad = await ActividadVoluntario.findById(actividadId);
-      if (!actividad) {
-        return res.status(404).json({ message: "Actividad no encontrada" });
-      }
-
-      // Agregar el usuario a la lista de inscritos si no está ya inscrito
-      if (!actividad.participantes) {
-        actividad.participantes = [];
-      }
-
-      if (actividad.participantes.includes(userId)) {
-        return res
-          .status(400)
-          .json({ message: "Ya estás inscrito en esta actividad" });
-      }
-
-      actividad.participantes.push(userId);
-      await actividad.save();
-
-      res.status(200).json({ message: "Inscripción exitosa", actividad });
-    } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Error inscribiéndose en la actividad", error });
+    const actividad = await ActividadVoluntario.findById(actividadId);
+    if (!actividad) {
+      return res.status(404).json({ message: "Actividad no encontrada" });
     }
+
+    if (actividad.participantes && actividad.participantes.includes(userId)) {
+      return res
+        .status(400)
+        .json({ message: "Ya estás inscrito en esta actividad" });
+    }
+
+    if (!actividad.participantes) {
+      actividad.participantes = [];
+    }
+
+    actividad.participantes.push(userId);
+    await actividad.save();
+
+    res.status(200).json({ message: "Inscripción exitosa", actividad });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error inscribiéndose en la actividad", error });
   }
-);
+});
 
 // Desapuntarse de una actividad
 router.post(
-  "/actividades/:actividadId/desinscribirse",
+  "/:actividadId/desinscribirse",
   isAuthenticated,
   async (req, res) => {
     try {
@@ -118,16 +110,62 @@ router.post(
 router.get("/mis-actividades", isAuthenticated, async (req, res) => {
   try {
     const userId = req.payload._id;
-
     const actividades = await ActividadVoluntario.find({
       participantes: userId,
     });
-
     res.status(200).json(actividades);
   } catch (error) {
     res
       .status(500)
       .json({ message: "Error obteniendo actividades del usuario", error });
+  }
+});
+
+// Eliminar una actividad de un proyecto
+router.delete("/:actividadId", isAuthenticated, async (req, res) => {
+  try {
+    const { actividadId } = req.params;
+    const actividad = await ActividadVoluntario.findById(actividadId);
+    if (!actividad) {
+      return res.status(404).json({ message: "Actividad no encontrada" });
+    }
+
+    await ActividadVoluntario.findByIdAndDelete(actividadId);
+    res.status(200).json({ message: "Actividad eliminada correctamente" });
+  } catch (error) {
+    res.status(500).json({ message: "Error eliminando la actividad", error });
+  }
+});
+
+// Modificar información de una actividad
+router.put("/:actividadId", isAuthenticated, async (req, res) => {
+  try {
+    const { actividadId } = req.params;
+    const updateData = req.body;
+
+    // Verificar si la actividad existe
+    const actividad = await ActividadVoluntario.findById(actividadId);
+    if (!actividad) {
+      return res.status(404).json({ message: "Actividad no encontrada" });
+    }
+
+    // Aplicar actualización con $set para evitar errores de formato
+    const actividadActualizada = await ActividadVoluntario.findByIdAndUpdate(
+      actividadId,
+      { $set: updateData }, // <<--- Aquí usamos $set
+      { new: true, runValidators: true }
+    );
+
+    res.status(200).json({
+      message: "Actividad actualizada",
+      actividad: actividadActualizada,
+    });
+  } catch (error) {
+    console.error("Error modificando la actividad:", error);
+    res.status(500).json({
+      message: "Error modificando la actividad",
+      error: error.message,
+    });
   }
 });
 
