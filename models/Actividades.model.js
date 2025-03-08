@@ -99,6 +99,18 @@ const ActividadesSchema = new Schema(
       },
       notas: String,
     },
+    proyecto: {
+      type: Schema.Types.ObjectId,
+      ref: "Project",
+      required: true,
+    },
+    participantes: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        default: [],
+      },
+    ],
   },
   {
     timestamps: true,

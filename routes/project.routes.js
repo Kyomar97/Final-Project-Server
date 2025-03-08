@@ -106,7 +106,7 @@ router.post("/:id/join", isAuthenticated, async (req, res) => {
 
     // Verificar si el usuario ya está en el proyecto
     const user = await User.findById(userId);
-    if (user.proyectos_asignados.includes(projectId)) {
+    if (user.projects.includes(projectId)) {
       return res
         .status(400)
         .json({ message: "Ya estás registrado en este proyecto" });
@@ -114,7 +114,7 @@ router.post("/:id/join", isAuthenticated, async (req, res) => {
 
     // Añadir el proyecto al usuario
     await User.findByIdAndUpdate(userId, {
-      $push: { proyectos_asignados: projectId },
+      $push: { projects: projectId },
     });
 
     // Incrementar el número de voluntarios
@@ -130,8 +130,8 @@ router.post("/:id/join", isAuthenticated, async (req, res) => {
   }
 });
 
-// POST - Abandonar un proyecto
-router.post("/:id/leave", isAuthenticated, async (req, res) => {
+// PATCH - Abandonar un proyecto
+router.patch("/:id/leave", isAuthenticated, async (req, res) => {
   try {
     const projectId = req.params.id;
     const userId = req.payload._id; // Usar el ID del payload JWT
@@ -143,7 +143,7 @@ router.post("/:id/leave", isAuthenticated, async (req, res) => {
 
     // Verificar si el usuario está en el proyecto
     const user = await User.findById(userId);
-    if (!user.proyectos_asignados.includes(projectId)) {
+    if (!user.projects.includes(projectId)) {
       return res
         .status(400)
         .json({ message: "No estás registrado en este proyecto" });
@@ -151,7 +151,7 @@ router.post("/:id/leave", isAuthenticated, async (req, res) => {
 
     // Eliminar el proyecto del usuario
     await User.findByIdAndUpdate(userId, {
-      $pull: { proyectos_asignados: projectId },
+      $pull: { projects: projectId },
     });
 
     // Decrementar el número de voluntarios si es mayor que 0
@@ -165,32 +165,6 @@ router.post("/:id/leave", isAuthenticated, async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: "Error al abandonar el proyecto",
-      error: error.message,
-    });
-  }
-});
-
-// GET - Obtener usuarios de un proyecto específico
-router.get("/:id/users", isAuthenticated, async (req, res) => {
-  try {
-    const projectId = req.params.id;
-
-    // Verificar que el proyecto existe
-    const projectExists = await Project.exists({ _id: projectId });
-    if (!projectExists) {
-      return res.status(404).json({ message: "Proyecto no encontrado" });
-    }
-
-    // Obtener usuarios asignados al proyecto
-    const users = await User.find(
-      { proyectos_asignados: projectId },
-      { password: 0 } // Excluimos el campo password por seguridad
-    );
-
-    res.status(200).json(users);
-  } catch (error) {
-    res.status(500).json({
-      message: "Error al obtener usuarios del proyecto",
       error: error.message,
     });
   }
