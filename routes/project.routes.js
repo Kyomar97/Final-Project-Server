@@ -16,7 +16,19 @@ router.get("/", async (req, res) => {
       .json({ message: "Error al obtener proyectos", error: error.message });
   }
 });
-
+// GET - Obtener proyectos por organización
+router.get("/organization/:organizationName", async (req, res) => {
+  try {
+    const organizationName = req.params.organizationName;
+    const projects = await Project.find({ organizacion: organizationName });
+    res.status(200).json(projects);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error al obtener los proyectos de la organización",
+      error: error.message,
+    });
+  }
+});
 // GET - Obtener un proyecto específico por ID
 router.get("/:id", async (req, res) => {
   try {
