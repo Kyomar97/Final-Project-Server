@@ -7,6 +7,11 @@ const projectSchema = new Schema(
       required: [true, "El nombre del programa es obligatorio."],
       trim: true,
     },
+    organizacion: {
+      type: String,
+      required: [true, "El nombre de la organización es obligatorio."],
+      trim: true,
+    },
     descripcion: {
       type: String,
       required: [true, "La descripción del programa es obligatoria."],

@@ -80,7 +80,7 @@ router.post("/:actividadId/inscribirse", isAuthenticated, async (req, res) => {
 });
 
 // Desapuntarse de una actividad (usuario)
-router.post(
+router.patch(
   "/:actividadId/desinscribirse",
   isAuthenticated,
   async (req, res) => {
