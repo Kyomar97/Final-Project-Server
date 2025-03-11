@@ -16,6 +16,57 @@ router.get("/", async (req, res) => {
       .json({ message: "Error al obtener proyectos", error: error.message });
   }
 });
+
+// POST - Crear un nuevo proyecto (solo admin)
+router.post("/", isAuthenticated, isAdmin, async (req, res) => {
+  try {
+    const newProject = new Project(req.body);
+    const savedProject = await newProject.save();
+    res.status(201).json(savedProject);
+  } catch (error) {
+    res
+      .status(400)
+      .json({ message: "Error al crear el proyecto", error: error.message });
+  }
+});
+
+// GET - Obtener los proyectos a los que está inscrito el usuario
+router.get("/mis-proyectos", isAuthenticated, async (req, res) => {
+  try {
+    const userId = req.payload._id;
+
+    // 1. Buscar al usuario para obtener sus proyectos
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    // 2. Verificar si el usuario tiene proyectos asignados
+    if (!user.projects || user.projects.length === 0) {
+      return res
+        .status(200)
+        .json({
+          message: "El usuario no está inscrito en ningún proyecto",
+          proyectos: [],
+        });
+    }
+
+    // 3. Buscar los proyectos en la colección Projects usando los IDs
+    const proyectos = await Project.find({
+      _id: { $in: user.projects },
+    });
+
+    res.status(200).json(proyectos);
+  } catch (error) {
+    console.error("Error al obtener los proyectos del usuario:", error);
+    res.status(500).json({
+      message: "Error al obtener los proyectos del usuario",
+      error: error.message,
+    });
+  }
+});
+
 // GET - Obtener proyectos por organización
 router.get("/organization/:organizationName", async (req, res) => {
   try {
@@ -41,19 +92,6 @@ router.get("/:id", async (req, res) => {
     res
       .status(500)
       .json({ message: "Error al obtener el proyecto", error: error.message });
-  }
-});
-
-// POST - Crear un nuevo proyecto (solo admin)
-router.post("/", isAuthenticated, isAdmin, async (req, res) => {
-  try {
-    const newProject = new Project(req.body);
-    const savedProject = await newProject.save();
-    res.status(201).json(savedProject);
-  } catch (error) {
-    res
-      .status(400)
-      .json({ message: "Error al crear el proyecto", error: error.message });
   }
 });
 
