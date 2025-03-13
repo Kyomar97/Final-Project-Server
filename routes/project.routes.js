@@ -35,24 +35,22 @@ router.get("/mis-proyectos", isAuthenticated, async (req, res) => {
   try {
     const userId = req.payload._id;
 
-    // 1. Buscar al usuario para obtener sus proyectos
+    //Buscar al usuario para obtener sus proyectos
     const user = await User.findById(userId);
 
     if (!user) {
       return res.status(404).json({ message: "Usuario no encontrado" });
     }
 
-    // 2. Verificar si el usuario tiene proyectos asignados
+    //Verificar si el usuario tiene proyectos asignados
     if (!user.projects || user.projects.length === 0) {
-      return res
-        .status(200)
-        .json({
-          message: "El usuario no está inscrito en ningún proyecto",
-          proyectos: [],
-        });
+      return res.status(200).json({
+        message: "El usuario no está inscrito en ningún proyecto",
+        proyectos: [],
+      });
     }
 
-    // 3. Buscar los proyectos en la colección Projects usando los IDs
+    //Buscar los proyectos en la colección Projects usando los IDs
     const proyectos = await Project.find({
       _id: { $in: user.projects },
     });
@@ -177,7 +175,7 @@ router.post("/:id/join", isAuthenticated, async (req, res) => {
   }
 });
 
-// PATCH - Abandonar un proyecto
+// PATCH - Abandonar un proyecto (usuario)
 router.patch("/:id/leave", isAuthenticated, async (req, res) => {
   try {
     const projectId = req.params.id;
