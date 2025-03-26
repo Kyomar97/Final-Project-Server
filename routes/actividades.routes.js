@@ -5,6 +5,7 @@ const User = require("../models/User.model.js");
 const { isAuthenticated } = require("../middleware/jwt.middleware.js");
 const isAdmin = require("../middleware/isAdmin.middleware.js");
 const ActividadVoluntario = require("../models/Actividades.model.js");
+const { suggestTasks } = require("../AI-task/gemini.js");
 
 // Crear una nueva actividad (admin)
 router.post(
@@ -171,6 +172,26 @@ router.put("/:actividadId", isAuthenticated, isAdmin, async (req, res) => {
       message: "Error modificando la actividad",
       error: error.message,
     });
+  }
+});
+// A partir de aqui es lo que añado de la IA Gemini
+router.post("/:projectId/suggest-tasks", isAuthenticated, async (req, res) => {
+  try {
+    const { projectId } = req.params;
+
+    // Verificar que el proyecto exista
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return res.status(404).json({ message: "Proyecto no encontrado" });
+    }
+
+    // Generar sugerencias de actividades
+    const suggestions = await suggestTasks(project.descripcion);
+
+    res.status(200).json({ suggestions });
+  } catch (error) {
+    console.error("Error al sugerir tareas:", error);
+    res.status(500).json({ message: "Error al generar sugerencias de tareas" });
   }
 });
 
