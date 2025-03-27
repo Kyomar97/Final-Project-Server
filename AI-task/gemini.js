@@ -12,7 +12,11 @@ const suggestTasks = async (descripcion) => {
     const response = await axios.post(GEMINI_API_URL, {
       contents: [
         {
-          parts: [{ text: "Dime 5 palabras" }],
+          parts: [
+            {
+              text: "Sugiere 5 actividades que pueda realizar en el proyecto un voluntario de una ONG, una por línea, separadas por saltos de línea:\n\n1. [Actividad 1]\n2. [Actividad 2]\n3. [Actividad 3]\n4. [Actividad 4]\n5. [Actividad 5]",
+            },
+          ],
         },
       ],
     });
